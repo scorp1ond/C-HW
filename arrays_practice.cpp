@@ -35,10 +35,10 @@ int main() {
         }
     }
 
-    cout << "Total profit: " << total << endl;
-    cout << "Maximum profit: " << maxprofit << ", month: " << maxmonth + 1 << endl;
-    cout << "Minimum profit: " << minprofit << ", month: " << minmonth + 1 << endl;
-    cout << "Average profit: " << total / 12 << endl;
+    cout << "Total profit: " << total << '\n';
+    cout << "Maximum profit: " << maxprofit << ", month: " << maxmonth + 1 << '\n';
+    cout << "Minimum profit: " << minprofit << ", month: " << minmonth + 1 << '\n';
+    cout << "Average profit: " << total / 12 << '\n';
 
 
     // Task 2
@@ -52,7 +52,7 @@ int main() {
         cout << arr1[i] << " ";
     }
 
-    cout << endl;
+    
 
 
     // Task 3
@@ -68,7 +68,7 @@ int main() {
         perimeter += sides[i];
     }
 
-    cout << "Perimeter: " << perimeter << endl;
+    cout << "Perimeter: " << perimeter << '\n';
 
 
     // Task 4
@@ -95,13 +95,13 @@ int main() {
         index++;
     }
 
-    cout << endl << "Array after: ";
+    cout << '\n' << "Array after: ";
 
     for (int i = 0; i < 9; i++) {
         cout << arr2[i] << " ";
     }
 
-    cout << endl;
+    
 
 
     // Task 5
@@ -159,9 +159,6 @@ int main() {
         cout << result[i] << " ";
     }
 
-    cout << endl;
-
-    return 0;
 }
 
 
