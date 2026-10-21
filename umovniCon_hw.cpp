@@ -172,6 +172,4 @@ int main()
     {
         std::cout << "Invalid choice\n";
     }
-
-    return 0;
 }
