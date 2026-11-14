@@ -1,47 +1,33 @@
 #include <iostream>
-using namespace std;
 
-int readNumber(const char* message)
-{
-    int number;
-    while (true)
-    {
-        cout << message;
-        if (cin >> number)
-            return number;
-        if (cin.eof())
-            throw 0;
-        cin.clear();
-        char ch;
-        while (cin.get(ch) && ch != '\n') {}
-        cout << "Enter an integer.\n";
-    }
-}
+void flip(int[], int);
+bool sorted(int[], int);
+bool findFlips(int[], int, int, int[], int, int);
 
-int readSize(const char* message, int maximum)
-{
-    int n;
-    do
-    {
-        n = readNumber(message);
-    } while (n < 1 || n > maximum);
-    return n;
-}
-
-void task1()
+int main()
 {
     long long mobile[100], home[100];
-    int n = readSize("Number of users (1-100): ", 100);
+    int n;
+    std::cout << "Enter number of users (1-100): ";
+    if (!(std::cin >> n))
+        return 0;
+
+    while (n < 1 || n > 100)
+    {
+        std::cout << "Enter number from 1 to 100: ";
+        if (!(std::cin >> n))
+            return 0;
+    }
     for (int i = 0; i < n; i++)
     {
-        cout << "User " << i + 1 << " (mobile and home numbers): ";
-        while (!(cin >> mobile[i] >> home[i]) || mobile[i] < 0 || home[i] < 0)
+        std::cout << "User " << i + 1 << " (mobile and home numbers): ";
+        if (!(std::cin >> mobile[i] >> home[i]))
+            return 0;
+        while (mobile[i] < 0 || home[i] < 0)
         {
-            if (cin.eof()) throw 0;
-            cin.clear();
-            char ch;
-            while (cin.get(ch) && ch != '\n') {}
-            cout << "Enter two non-negative phone numbers: ";
+            std::cout << "Enter two non-negative numbers: ";
+            if (!(std::cin >> mobile[i] >> home[i]))
+                return 0;
         }
     }
 
@@ -67,21 +53,31 @@ void task1()
                 }
             }
         if (choice == 1)
-            cout << "Sorted by mobile:\n";
+            std::cout << "Sorted by mobile:\n";
         else
-            cout << "Sorted by home:\n";
-        cout << "Mobile\tHome\n";
+            std::cout << "Sorted by home:\n";
+        std::cout << "Mobile\tHome\n";
         for (int i = 0; i < n; i++)
-            cout << mobile[i] << '\t' << home[i] << '\n';
+            std::cout << mobile[i] << '\t' << home[i] << '\n';
     }
-}
 
-void task2()
-{
+
     int a[100];
-    int n = readSize("Array size (1-100): ", 100);
+    std::cout << "\nEnter array size (1-100): ";
+    if (!(std::cin >> n))
+        return 0;
+
+    while (n < 1 || n > 100)
+    {
+        std::cout << "Enter size from 1 to 100: ";
+        if (!(std::cin >> n))
+            return 0;
+    }
+
+    std::cout << "Enter numbers: ";
     for (int i = 0; i < n; i++)
-        a[i] = readNumber("Element: ");
+        if (!(std::cin >> a[i]))
+            return 0;
 
     for (int i = 0; i < n - 1; i++)
     {
@@ -96,14 +92,66 @@ void task2()
                 swaps++;
             }
         }
-        cout << "Swaps: " << swaps << '\n';
+        std::cout << "Swaps: " << swaps << '\n';
         if (swaps == 0)
             break;
     }
-    cout << "Sorted array: ";
+    std::cout << "Sorted array: ";
     for (int i = 0; i < n; i++)
-        cout << a[i] << ' ';
-    cout << '\n';
+        std::cout << a[i] << ' ';
+    std::cout << '\n';
+
+
+    int radius[9], rank[9], path[18];
+    std::cout << "\nEnter number of pancakes (1-9): ";
+    if (!(std::cin >> n))
+        return 0;
+
+    while (n < 1 || n > 9)
+    {
+        std::cout << "Enter number from 1 to 9: ";
+        if (!(std::cin >> n))
+            return 0;
+    }
+    std::cout << "Enter distinct positive integer radii from TOP to BOTTOM.\n";
+    for (int i = 0; i < n; i++)
+    {
+        bool valid;
+        do
+        {
+            std::cout << "Radius: ";
+            if (!(std::cin >> radius[i]))
+                return 0;
+            valid = radius[i] > 0;
+            for (int j = 0; j < i; j++)
+                if (radius[i] == radius[j])
+                    valid = false;
+            if (!valid)
+                std::cout << "Use a positive radius different from the others.\n";
+        } while (!valid);
+    }
+    for (int i = 0; i < n; i++)
+    {
+        rank[i] = 1;
+        for (int j = 0; j < n; j++)
+            if (radius[j] < radius[i])
+                rank[i]++;
+    }
+
+    int count = 0;
+    while (!findFlips(rank, n, count, path, 0, 0))
+        count++;
+    std::cout << "Minimum operations: " << count << '\n';
+    for (int i = 0; i < count; i++)
+    {
+        std::cout << "Flip top " << path[i] << " pancakes.\n";
+        flip(radius, path[i]);
+    }
+    std::cout << "Result from BOTTOM to TOP: ";
+    for (int i = n - 1; i >= 0; i--)
+        std::cout << radius[i] << ' ';
+    std::cout << '\n';
+    return 0;
 }
 
 void flip(int a[], int k)
@@ -119,88 +167,39 @@ void flip(int a[], int k)
 bool sorted(int a[], int n)
 {
     for (int i = 0; i < n - 1; i++)
-        if (a[i] > a[i + 1]) return false;
+        if (a[i] > a[i + 1])
+            return false;
     return true;
 }
 
 bool findFlips(int a[], int n, int left, int path[], int depth, int lastFlip)
 {
-    if (sorted(a, n)) return true;
-    if (left == 0) return false;
+    if (sorted(a, n))
+        return true;
+    if (left == 0)
+        return false;
 
     int breaks = (a[n - 1] != n);
     for (int i = 0; i < n - 1; i++)
     {
         int difference = a[i] - a[i + 1];
-        if (difference != 1 && difference != -1) breaks++;
+        if (difference != 1 && difference != -1)
+            breaks++;
     }
-    if (breaks > left) return false;
+    if (breaks > left)
+        return false;
 
     for (int k = 2; k <= n; k++)
     {
-        if (k == lastFlip) continue;
+        if (k == lastFlip)
+            continue;
         flip(a, k);
         path[depth] = k;
         bool found = findFlips(a, n, left - 1, path, depth + 1, k);
         flip(a, k);
-        if (found) return true;
+        if (found)
+            return true;
     }
     return false;
-}
-
-void task3()
-{
-    int radius[9], rank[9], path[18];
-    int n = readSize("Number of pancakes (1-9): ", 9);
-    cout << "Enter distinct positive integer radii from TOP to BOTTOM.\n";
-    for (int i = 0; i < n; i++)
-    {
-        bool valid;
-        do
-        {
-            radius[i] = readNumber("Radius: ");
-            valid = radius[i] > 0;
-            for (int j = 0; j < i; j++)
-                if (radius[i] == radius[j]) valid = false;
-            if (!valid) cout << "Use a positive radius different from the others.\n";
-        } while (!valid);
-    }
-    for (int i = 0; i < n; i++)
-    {
-        rank[i] = 1;
-        for (int j = 0; j < n; j++)
-            if (radius[j] < radius[i]) rank[i]++;
-    }
-
-    int count = 0;
-    while (!findFlips(rank, n, count, path, 0, 0)) count++;
-    cout << "Minimum operations: " << count << '\n';
-    for (int i = 0; i < count; i++)
-    {
-        cout << "Flip top " << path[i] << " pancakes.\n";
-        flip(radius, path[i]);
-    }
-    cout << "Result from BOTTOM to TOP: ";
-    for (int i = n - 1; i >= 0; i--)
-        cout << radius[i] << ' ';
-    cout << '\n';
-}
-
-int main()
-{
-    try
-    {
-        cout << "Task 1\n";
-        task1();
-        cout << "\nTask 2\n";
-        task2();
-        cout << "\nTask 3\n";
-        task3();
-    }
-    catch (int)
-    {
-        cout << "\nInput ended.\n";
-    }
-    return 0;
 }
 
