@@ -1,234 +1,224 @@
-#include <algorithm>
 #include <iostream>
-#include <limits>
-#include <queue>
-#include <stdexcept>
-#include <string>
-#include <unordered_map>
-#include <vector>
+using namespace std;
 
-// Build: g++ -std=c++11 -Wall -Wextra -pedantic algorithms_hw.cpp -o algorithms_hw
-
-int readInt(const char* prompt, int low, int high)
+// Read an integer; repeat if the input is invalid.
+int readNumber(const char* message)
 {
-    int value;
+    int number;
     while (true)
     {
-        std::cout << prompt;
-        if (std::cin >> value && value >= low && value <= high)
-            return value;
-        if (std::cin.eof())
-            throw std::runtime_error("Input ended.");
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Invalid input. Allowed range: " << low << ".." << high << '\n';
+        cout << message;
+        if (cin >> number)
+            return number;
+        if (cin.eof())
+            throw 0;
+        cin.clear();
+        char ch;
+        while (cin.get(ch) && ch != '\n') {}
+        cout << "Enter an integer.\n";
     }
 }
 
-std::string readPhone(const char* prompt)
+int readSize(const char* message, int maximum)
 {
-    std::string phone;
-    while (true)
+    int n;
+    do
     {
-        std::cout << prompt;
-        if (!(std::cin >> phone))
-            throw std::runtime_error("Input ended.");
-        if (phone.size() <= 15 &&
-            phone.find_first_not_of("0123456789") == std::string::npos)
-            return phone;
-        std::cout << "Enter 1-15 digits without spaces or punctuation.\n";
-    }
+        n = readNumber(message);
+    } while (n < 1 || n > maximum);
+    return n;
 }
 
-// Compare numeric values without losing leading zeros in the stored phones.
-bool phoneGreater(const std::string& a, const std::string& b)
+// Task 1. Two one-dimensional arrays of phone numbers.
+void task1()
 {
-    const auto firstA = a.find_first_not_of('0');
-    const auto firstB = b.find_first_not_of('0');
-    const std::string x = firstA == std::string::npos ? "0" : a.substr(firstA);
-    const std::string y = firstB == std::string::npos ? "0" : b.substr(firstB);
-    return x.size() != y.size() ? x.size() > y.size() : x > y;
-}
-
-// Task 1: the two arrays always move together to preserve each person's pair.
-void phoneBook()
-{
-    const int capacity = 100;
-    std::string mobile[capacity], home[capacity];
-    const int n = readInt("Number of users (1-100): ", 1, capacity);
-    for (int i = 0; i < n; ++i)
+    long long mobile[100], home[100];
+    int n = readSize("Number of users (1-100): ", 100);
+    for (int i = 0; i < n; i++)
     {
-        std::cout << "User " << i + 1 << ":\n";
-        mobile[i] = readPhone("Mobile: ");
-        home[i] = readPhone("Home: ");
-    }
-
-    while (true)
-    {
-        const int choice = readInt(
-            "\n1. Sort by mobile\n2. Sort by home\n3. List users\n4. Exit\nChoice: ", 1, 4);
-        if (choice == 4)
-            return;
-        if (choice == 3)
+        cout << "User " << i + 1 << " (mobile and home numbers): ";
+        // Enter digits only. Leading zeros are not stored in integer arrays.
+        while (!(cin >> mobile[i] >> home[i]) || mobile[i] < 0 || home[i] < 0)
         {
-            std::cout << "No.\tMobile\tHome\n";
-            for (int i = 0; i < n; ++i)
-                std::cout << i + 1 << '\t' << mobile[i] << '\t' << home[i] << '\n';
-            continue;
+            if (cin.eof()) throw 0;
+            cin.clear();
+            char ch;
+            while (cin.get(ch) && ch != '\n') {}
+            cout << "Enter two non-negative phone numbers: ";
         }
-        for (int end = n - 1; end > 0; --end)
+    }
+
+    int choice;
+    do
+    {
+        choice = readNumber("\n1. Sort by mobile\n2. Sort by home\n3. List users\n4. Exit\nChoice: ");
+        if (choice == 1 || choice == 2)
         {
-            int swaps = 0;
-            for (int j = 0; j < end; ++j)
-            {
-                if (phoneGreater(choice == 1 ? mobile[j] : home[j],
-                                 choice == 1 ? mobile[j + 1] : home[j + 1]))
+            for (int i = 0; i < n - 1; i++)
+                for (int j = 0; j < n - 1 - i; j++)
                 {
-                    std::swap(mobile[j], mobile[j + 1]);
-                    std::swap(home[j], home[j + 1]);
-                    ++swaps;
+                    bool wrongOrder;
+                    if (choice == 1)
+                        wrongOrder = mobile[j] > mobile[j + 1];
+                    else
+                        wrongOrder = home[j] > home[j + 1];
+
+                    if (wrongOrder)
+                    {
+                        // Move both numbers together: they belong to one user.
+                        long long temp = mobile[j];
+                        mobile[j] = mobile[j + 1];
+                        mobile[j + 1] = temp;
+                        temp = home[j];
+                        home[j] = home[j + 1];
+                        home[j + 1] = temp;
+                    }
                 }
-            }
-            if (swaps == 0)
-                break;
+            cout << "Sorted.\n";
         }
-        std::cout << "Sorted in ascending order.\n";
-    }
+        else if (choice == 3)
+        {
+            cout << "No.\tMobile\tHome\n";
+            for (int i = 0; i < n; i++)
+                cout << i + 1 << '\t' << mobile[i] << '\t' << home[i] << '\n';
+        }
+    } while (choice != 4);
 }
 
-// Task 2: stop as soon as a full pass makes no swaps.
-void bubbleSort(int a[], int n)
+// Task 2. Improved bubble sort.
+void task2()
 {
-    for (int end = n - 1; end > 0; --end)
+    int a[100];
+    int n = readSize("Array size (1-100): ", 100);
+    for (int i = 0; i < n; i++)
+        a[i] = readNumber("Element: ");
+
+    for (int i = 0; i < n - 1; i++)
     {
         int swaps = 0;
-        for (int j = 0; j < end; ++j)
+        for (int j = 0; j < n - 1 - i; j++)
+        {
             if (a[j] > a[j + 1])
             {
-                std::swap(a[j], a[j + 1]);
-                ++swaps;
+                int temp = a[j];
+                a[j] = a[j + 1];
+                a[j + 1] = temp;
+                swaps++;
             }
-        std::cout << "Swaps on this pass: " << swaps << '\n';
+        }
+        cout << "Swaps: " << swaps << '\n';
         if (swaps == 0)
             break;
     }
+    cout << "Sorted array: ";
+    for (int i = 0; i < n; i++)
+        cout << a[i] << ' ';
+    cout << '\n';
 }
 
-void bubbleTask()
+// Task 3. Index 0 is the TOP of the stack.
+void flip(int a[], int k)
 {
-    int a[100];
-    const int n = readInt("Array size (1-100): ", 1, 100);
-    for (int i = 0; i < n; ++i)
-        a[i] = readInt("Element: ", std::numeric_limits<int>::min(),
-                       std::numeric_limits<int>::max());
-    bubbleSort(a, n);
-    std::cout << "Sorted array: ";
-    for (int i = 0; i < n; ++i)
-        std::cout << a[i] << ' ';
-    std::cout << '\n';
-}
-
-struct Previous
-{
-    std::string state;
-    int flip;
-};
-
-// Task 3: BFS visits states by distance, so the first solution is optimal.
-// Index 0 is the TOP. Ascending top-to-bottom means decreasing bottom-to-top.
-// At most 9! states; limiting n avoids unbounded factorial memory consumption.
-std::vector<int> minimumFlips(const std::string& start)
-{
-    std::string target = start;
-    std::sort(target.begin(), target.end());
-    std::unordered_map<std::string, Previous> previous;
-    std::queue<std::string> pending;
-    previous.emplace(start, Previous{"", 0});
-    pending.push(start);
-    while (!pending.empty())
+    for (int i = 0; i < k / 2; i++)
     {
-        const std::string current = pending.front();
-        pending.pop();
-        if (current == target)
-            break;
-        for (int k = 2; k <= static_cast<int>(start.size()); ++k)
-        {
-            std::string next = current;
-            std::reverse(next.begin(), next.begin() + k);
-            if (previous.emplace(next, Previous{current, k}).second)
-                pending.push(next);
-        }
+        int temp = a[i];
+        a[i] = a[k - 1 - i];
+        a[k - 1 - i] = temp;
     }
-    std::vector<int> flips;
-    for (std::string state = target; state != start; state = previous.at(state).state)
-        flips.push_back(previous.at(state).flip);
-    std::reverse(flips.begin(), flips.end());
-    return flips;
 }
 
-void pancakeTask()
+bool sorted(int a[], int n)
 {
-    const int n = readInt("Number of pancakes (1-9, exact minimum search): ", 1, 9);
-    int radius[9];
-    std::cout << "Enter distinct positive integer radii from TOP to BOTTOM.\n";
-    for (int i = 0; i < n; ++i)
+    for (int i = 0; i < n - 1; i++)
+        if (a[i] > a[i + 1]) return false;
+    return true;
+}
+
+// Try every sequence with at most 'left' flips.
+// Trying limits 0, 1, 2, ... guarantees the minimum number of operations.
+// Ranks 1..n are used here, rather than the original radii.
+bool findFlips(int a[], int n, int left, int path[], int depth, int lastFlip)
+{
+    if (sorted(a, n)) return true;
+    if (left == 0) return false;
+
+    // A flip can fix at most one broken neighbouring pair.
+    // This check skips branches which cannot finish within the remaining flips.
+    int breaks = (a[n - 1] != n);
+    for (int i = 0; i < n - 1; i++)
     {
-        bool duplicate;
+        int difference = a[i] - a[i + 1];
+        if (difference != 1 && difference != -1) breaks++;
+    }
+    if (breaks > left) return false;
+
+    for (int k = 2; k <= n; k++)
+    {
+        if (k == lastFlip) continue; // Two identical flips cancel each other.
+        flip(a, k);
+        path[depth] = k;
+        bool found = findFlips(a, n, left - 1, path, depth + 1, k);
+        flip(a, k); // Restore the stack before trying the next operation.
+        if (found) return true;
+    }
+    return false;
+}
+
+void task3()
+{
+    int radius[9], rank[9], path[18];
+    int n = readSize("Number of pancakes (1-9): ", 9);
+    cout << "Enter distinct positive integer radii from TOP to BOTTOM.\n";
+    for (int i = 0; i < n; i++)
+    {
+        bool valid;
         do
         {
-            radius[i] = readInt("Radius: ", 1, std::numeric_limits<int>::max());
-            duplicate = false;
-            for (int j = 0; j < i; ++j)
-                if (radius[j] == radius[i])
-                    duplicate = true;
-            if (duplicate)
-                std::cout << "Radii must be distinct.\n";
-        } while (duplicate);
+            radius[i] = readNumber("Radius: ");
+            valid = radius[i] > 0;
+            for (int j = 0; j < i; j++)
+                if (radius[i] == radius[j]) valid = false;
+            if (!valid) cout << "Use a positive radius different from the others.\n";
+        } while (!valid);
     }
-    // Encode radii by rank; the BFS state then takes only n bytes.
-    std::string start;
-    for (int i = 0; i < n; ++i)
+    for (int i = 0; i < n; i++)
     {
-        int rank = 0;
-        for (int j = 0; j < n; ++j)
-            if (radius[j] < radius[i])
-                ++rank;
-        start += static_cast<char>('0' + rank);
+        rank[i] = 1;
+        for (int j = 0; j < n; j++)
+            if (radius[j] < radius[i]) rank[i]++;
     }
-    const std::vector<int> flips = minimumFlips(start);
-    std::cout << "Minimum operations: " << flips.size() << '\n';
-    for (int k : flips)
+
+    int count = 0;
+    while (!findFlips(rank, n, count, path, 0, 0)) count++;
+    cout << "Minimum operations: " << count << '\n';
+    for (int i = 0; i < count; i++)
     {
-        std::reverse(radius, radius + k);
-        std::cout << "Flip top " << k << ": ";
-        for (int i = 0; i < n; ++i)
-            std::cout << radius[i] << ' ';
-        std::cout << "(top to bottom)\n";
+        cout << "Flip top " << path[i] << " pancakes.\n";
+        flip(radius, path[i]);
     }
-    std::cout << "Result, BOTTOM to TOP: ";
-    for (int i = n - 1; i >= 0; --i)
-        std::cout << radius[i] << ' ';
-    std::cout << '\n';
+    cout << "Result from BOTTOM to TOP: ";
+    for (int i = n - 1; i >= 0; i--)
+        cout << radius[i] << ' ';
+    cout << '\n';
 }
 
 int main()
 {
     try
     {
-        while (true)
+        int choice;
+        do
         {
-            const int task = readInt(
-                "\n1. Phone book\n2. Improved bubble sort\n3. Pancakes\n0. Exit\nTask: ", 0, 3);
-            if (task == 0) return 0;
-            if (task == 1) phoneBook();
-            if (task == 2) bubbleTask();
-            if (task == 3) pancakeTask();
-        }
+            choice = readNumber("\n1. Phone book\n2. Bubble sort\n3. Pancakes\n0. Exit\nTask: ");
+            if (choice == 1) task1();
+            if (choice == 2) task2();
+            if (choice == 3) task3();
+        } while (choice != 0);
     }
-    catch (const std::exception& error)
+    catch (int)
     {
-        std::cerr << error.what() << '\n';
-        return 1;
+        cout << "\nInput ended.\n";
     }
+    return 0;
 }
 
